@@ -41,10 +41,14 @@ export default function Marquee({
       const speed = baseSpeed + boost;
       xRef.current += dirSign * speed * dt;
 
+      // Wrap math relies on track.scrollWidth = exactly 2× one group.
+      // CSS removes padding-right on .marquee__group to guarantee this.
+      // Keep x in [-halfWidth, 0]. Use while-loops so a single overshoot
+      // (high velocity boost) still resolves in one frame, no visual step.
       const halfWidth = track.scrollWidth / 2;
       if (halfWidth > 0) {
-        if (xRef.current <= -halfWidth) xRef.current += halfWidth;
-        if (xRef.current >= 0) xRef.current -= halfWidth;
+        while (xRef.current <= -halfWidth) xRef.current += halfWidth;
+        while (xRef.current >= 0) xRef.current -= halfWidth;
       }
 
       track.style.transform = `translate3d(${xRef.current}px, 0, 0)`;

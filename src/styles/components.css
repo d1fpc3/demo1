@@ -210,7 +210,9 @@
   display: flex;
   align-items: center;
   gap: var(--space-8);
-  padding-right: var(--space-8);
+  /* No padding-right: the wrap math relies on scrollWidth/2 equalling one
+     group exactly. Spacing between groups is handled by the children
+     (separator items in JSX), not group padding. */
   font-size: var(--fs-2xl);
   letter-spacing: -0.02em;
   color: var(--bone);
@@ -482,7 +484,8 @@
   color: var(--bone);
   letter-spacing: -0.025em;
   gap: var(--space-12);
-  padding-right: var(--space-12);
+  /* No padding-right — separator dashes are real children (see LogoWall.jsx),
+     so the gap repeats cleanly across the wrap point. */
   text-transform: none;
 }
 .logos__name {
@@ -493,10 +496,10 @@
   transition: color var(--duration-base) var(--ease-out);
 }
 .logos__name:hover { color: var(--copper); }
-.logos__name + .logos__name::before {
-  content: "—";
-  margin-right: var(--space-12);
+.logos__sep {
   color: var(--copper);
+  user-select: none;
+  pointer-events: none;
 }
 
 /* ============================================================

@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import Marquee from './Marquee';
 
 const CLIENTS = [
@@ -19,7 +20,10 @@ export default function LogoWall({ velocity }) {
       </div>
       <Marquee baseSpeed={28} velocity={velocity} direction="right" className="logos__marquee">
         {CLIENTS.map((c) => (
-          <span key={c} className="logos__name serif">{c}</span>
+          <Fragment key={c}>
+            <span className="logos__name serif">{c}</span>
+            <span className="logos__sep" aria-hidden="true">—</span>
+          </Fragment>
         ))}
       </Marquee>
     </section>
