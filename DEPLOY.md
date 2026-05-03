@@ -1,26 +1,18 @@
-# Deploy to demo.d1fpc3.com
+# Deploy to GitHub Pages
 
-GitHub Actions builds the Vite app and FTP-uploads the `dist/` to Hostinger on every push to `main`. Same pattern as `outback-running-club`, `white-line-detailing`, and the `d1fpc3` portfolio.
+GitHub Actions builds the Vite app and publishes `dist/` to GitHub Pages on every push to `main`. Final URL: **https://d1fpc3.github.io/demo1/**.
 
-## One-time Hostinger setup (do this in hPanel, then push)
+## One-time setup (do these once, in order)
 
-### 1. Create the subdomain
+### 1. Make the repo public
 
-hPanel → **Domains → Subdomains → Create**
-- Subdomain: `demo`
-- Domain: `d1fpc3.com`
-- Document root: `/public_html/demo` (Hostinger fills this in by default)
+GitHub Pages on the free plan only serves **public** repos. Either:
+- Flip `d1fpc3/demo1` to public: **Settings → General → scroll to Danger Zone → Change repository visibility → Make public**, OR
+- Upgrade to GitHub Pro ($4/mo) which allows private-repo Pages.
 
-The DNS record auto-creates. Wait ~5–10 min for propagation.
+### 2. Enable Pages with "GitHub Actions" as the source
 
-### 2. Add FTP secrets to the GitHub repo
-
-Repo: https://github.com/d1fpc3/demo1 → **Settings → Secrets and variables → Actions → New repository secret**
-
-Same values you already use for the other Hostinger sites:
-- `FTP_SERVER` — your Hostinger FTP host (e.g. `ftp.d1fpc3.com` or the IP from hPanel → Files → FTP Accounts)
-- `FTP_USERNAME` — main FTP user
-- `FTP_PASSWORD` — that user's password
+Repo → **Settings → Pages** → under **Build and deployment → Source**, pick **GitHub Actions**. (Not the default "Deploy from a branch" — we want the workflow to push the build artifact directly.)
 
 ### 3. Push to main
 
@@ -30,27 +22,25 @@ git push origin main
 
 The workflow will:
 1. `npm ci`
-2. `npm run build` → produces `dist/`
-3. FTP-upload `dist/` to `/public_html/demo/`
+2. `npm run build` → `dist/`
+3. Upload `dist/` as a Pages artifact and publish it.
 
-After ~2 min, the site is live at **https://demo.d1fpc3.com**.
+First deploy takes ~2 min. Subsequent pushes also take ~2 min.
 
-## SSL
+## Why `base: '/demo1/'` is set in vite.config.js
 
-Hostinger auto-issues a Let's Encrypt cert for the subdomain — usually within 15 min of creation. If `https://` doesn't work right away, give it time, then check hPanel → **Security → SSL**.
+GitHub Pages serves project sites at `https://<owner>.github.io/<repo>/`, so all asset URLs need to be prefixed with `/demo1/`. The `vite.config.js` `base` option handles this automatically at build time — `dev` mode still works at `localhost:5173/` because Vite ignores `base` when serving locally.
 
-## Manual fallback
+## Why the empty `public/.nojekyll`
 
-If FTP secrets aren't set up yet, you can deploy by hand:
+GitHub Pages runs Jekyll by default and Jekyll filters out files whose names start with underscore. Vite emits some assets that way. The `.nojekyll` file disables Jekyll, so Pages serves the build untouched.
 
-```bash
-npm run build
-```
+## Custom domain (later, optional)
 
-Then drag the **contents** of `dist/` (not the folder itself) into Hostinger File Manager at `/public_html/demo/`.
+If you ever can create a CNAME on your own DNS, you can point `demo.d1fpc3.com` (or any subdomain) at `d1fpc3.github.io`. Pages → Custom domain field handles the cert. Doesn't require Hostinger subdomain setup — just a DNS CNAME.
 
 ## Troubleshooting
 
-- **404 on assets** — the workflow uploads `./dist/` flat. Make sure `vite.config.js` does **not** have a `base:` set. (We're on a subdomain root, not a subfolder, so default `/` is correct.)
-- **FTP timeout** — your Vault note `Hostinger FTPS unreliable in CI — use plain FTP` applies. Workflow uses plain FTP on port 21.
-- **Workflow stops running** — Node 20 actions get auto-deprecated 2026-09-16 (per `project_node20_action_deprecation.md`). Bump `actions/checkout@v4` and `SamKirkland/FTP-Deploy-Action@v4.3.5` if so.
+- **Blank page / 404 on assets** — check the deployed page's network tab. If asset URLs are `/assets/...` instead of `/demo1/assets/...`, `base` got dropped from `vite.config.js`.
+- **Workflow fails with permission error** — make sure step 2 above is done (Pages source set to "GitHub Actions"). The workflow's `permissions:` block needs that.
+- **First deploy says "site under construction"** — Pages takes 1–2 min to propagate after the first deploy completes. Refresh.
