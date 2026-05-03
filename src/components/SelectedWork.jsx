@@ -41,6 +41,7 @@ export default function SelectedWork() {
 
   useEffect(() => {
     if (reduce) return;
+    if (window.matchMedia('(max-width: 720px)').matches) return;
     const section = sectionRef.current;
     if (!section) return;
 

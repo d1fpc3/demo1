@@ -320,6 +320,16 @@
   font-size: var(--fs-xs);
 }
 
+@media (max-width: 720px) {
+  .proj-card {
+    position: relative;
+    top: auto;
+    margin-bottom: var(--space-8);
+  }
+  .proj-card__inner { min-height: clamp(360px, 60vh, 480px); padding-block: var(--space-8); }
+  .proj-card__name  { font-size: clamp(2.6rem, 11vw, 4rem); }
+}
+
 /* ============================================================
    CAPABILITIES
 ============================================================ */

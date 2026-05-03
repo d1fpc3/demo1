@@ -9,7 +9,8 @@ export function useLenis() {
 
   useEffect(() => {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduce) return;
+    const isTouch = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+    if (reduce || isTouch) return;
 
     if (!lenisInstance) {
       lenisInstance = new Lenis({
