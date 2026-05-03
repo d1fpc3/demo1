@@ -15,35 +15,44 @@ export default function Marquee({
 }) {
   const trackRef = useRef(null);
   const xRef = useRef(0);
-  const lastTimeRef = useRef(0);
+  const velocityRef = useRef(0);
   const rafRef = useRef(0);
   const reduce = useReducedMotion();
+
+  // Mirror velocity prop into a ref so the RAF loop can read it without
+  // forcing the main effect to remount on every scroll tick.
+  useEffect(() => {
+    velocityRef.current = velocity;
+  }, [velocity]);
 
   useEffect(() => {
     if (reduce) return;
     const track = trackRef.current;
     if (!track) return;
 
-    const tick = (time) => {
-      if (!lastTimeRef.current) lastTimeRef.current = time;
-      const dt = (time - lastTimeRef.current) / 1000;
-      lastTimeRef.current = time;
+    let lastTime = performance.now();
+    const dirSign = direction === 'left' ? -1 : 1;
 
-      const dirSign = direction === 'left' ? -1 : 1;
-      const boost = Math.min(Math.abs(velocity) * 8, 200);
+    const tick = (time) => {
+      const dt = Math.min((time - lastTime) / 1000, 0.05);
+      lastTime = time;
+
+      const boost = Math.min(Math.abs(velocityRef.current) * 8, 200);
       const speed = baseSpeed + boost;
       xRef.current += dirSign * speed * dt;
 
       const halfWidth = track.scrollWidth / 2;
-      if (xRef.current <= -halfWidth) xRef.current += halfWidth;
-      if (xRef.current >= 0) xRef.current -= halfWidth;
+      if (halfWidth > 0) {
+        if (xRef.current <= -halfWidth) xRef.current += halfWidth;
+        if (xRef.current >= 0) xRef.current -= halfWidth;
+      }
 
       track.style.transform = `translate3d(${xRef.current}px, 0, 0)`;
       rafRef.current = requestAnimationFrame(tick);
     };
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
-  }, [baseSpeed, velocity, direction, reduce]);
+  }, [baseSpeed, direction, reduce]);
 
   return (
     <div className={`marquee ${className}`}>
