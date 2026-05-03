@@ -217,6 +217,14 @@
   letter-spacing: -0.02em;
   color: var(--bone);
 }
+/* Each repeated copy of children inside a group gets the same flex+gap
+   layout so spacing is consistent across copy boundaries. Inherits the
+   group's gap so logos override (--space-12) flows through. */
+.marquee__copy {
+  display: flex;
+  align-items: center;
+  gap: inherit;
+}
 .hero__marquee .marquee__group { font-size: var(--fs-xl); }
 .hero__marquee-dot {
   color: var(--copper);
